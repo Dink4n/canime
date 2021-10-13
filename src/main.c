@@ -21,7 +21,7 @@ void run()
     int anime_sel_id;
     char *anime_sel;
     int episode_sel;
-    struct Anime metadata;
+    struct AnimeInfo anime;
     struct ParserResults *search_results;
 
     // Get the anime provider to use
@@ -44,25 +44,48 @@ void run()
     anime_sel_id = ask_anime_sel();
 
     // convert SubstrPos to string
-    anime_sel = pos2str(web_client_getdata(web_client),
+    anime_sel = pos2str(web_client->webpage.buffer,
                         &search_results->matches[anime_sel_id]);
-    metadata = anime_provider->get_metadata(anime_sel);
+    anime = anime_provider->get_metadata(anime_sel);
 
-    // TODO: Show anime metadata
     // Get episode selection from user
-    episode_sel = ask_episode_sel(metadata.total_episodes);
+    episode_sel = ask_episode_sel(anime.total_episodes);
 
-    metadata.current_episode = episode_sel;
-    char *link = anime_provider->get_sources(&metadata);
+    anime.current_episode = episode_sel;
+    anime_provider->get_sources(&anime);
 
-    play(referer, link);
+    char choice;
+    while (1) {
+        // Clear the screen
+        /* fputs("\x1B[2J\x1B[1;1H", stdout); */
+        /* system("clear"); */
 
-    printf("Selection: %s\n", anime_sel);
-    printf("Episode Selection: %d\n", episode_sel);
-    printf("Link: %s\n", link);
+        // Play the episode
+        play_episode(&anime);
+
+        printf("Getting data for episode %d\n\n", anime.current_episode);
+        printf("Current playing %s episode %d/%d\n", anime.title,
+               anime.current_episode, anime.total_episodes);
+        puts("[n] next episode");
+        puts("[p] previous episode");
+        puts("[r] replay episode");
+        puts("[s] select episode");
+        puts("[q] quit");
+
+        fputs("Enter Choice: ", stdout);
+        scanf(" %c", &choice);
+        if (handle_option_choice(choice, &anime)) {
+            free(anime.episode->url);
+            free(anime.episode->referer);
+            break;
+        }
+
+        free(anime.episode->url);
+        free(anime.episode->referer);
+        anime_provider->get_sources(&anime);
+    }
 
     // Cleanup
-    free(link);
     free(anime_sel);
     free(search_results);
     web_client_cleanup(web_client);

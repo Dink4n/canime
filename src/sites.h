@@ -5,14 +5,12 @@
 
 // Gogoanime
 struct ParserResults *gogoanime_search(char *query);
-struct Anime gogoanime_get_metadata(char *anime_id);
-char *gogoanime_get_sources(struct Anime *anime);
-void gogoanime_play(struct Anime *anime);
+struct AnimeInfo gogoanime_get_metadata(char *anime_id);
+void gogoanime_get_sources(struct AnimeInfo *anime);
 
 // 9anime
 struct ParserResults *nineanime_search(char *query);
-struct Anime nineanime_get_metadata(char *anime_Id);
-char *nineanime_get_sources(struct Anime *anime);
-void nineanime_play(struct Anime *anime);
+struct AnimeInfo nineanime_get_metadata(char *anime_Id);
+void nineanime_get_sources(struct AnimeInfo *anime);
 
 #endif /* CANIME_SITES_H */

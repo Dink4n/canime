@@ -5,9 +5,8 @@
 #include <curl/curl.h>
 
 #define URL_BUF_SIZE 256
-#define WEB_CLIENT_URL(...) (char *[]){ __VA_ARGS__, NULL }
 
-struct WebData {
+struct WebPage {
     char *buffer;
     size_t size;
 };
@@ -15,7 +14,7 @@ struct WebData {
 struct WebClient {
     CURL *handle;
     char url[URL_BUF_SIZE];
-    struct WebData webdata;
+    struct WebPage webpage;
 };
 
 // Initialize WebClient
@@ -25,7 +24,7 @@ struct WebClient *web_client_init();
 void web_client_cleanup(struct WebClient *self);
 
 // Set the URL. The last element of URL array must be a NULL ptr
-void web_client_seturl(struct WebClient *self, char *url[]);
+void web_client_seturl(struct WebClient *self, char *url, char *referer);
 
 // Set the payload
 void web_client_setpayload(struct WebClient *self, char *key, char *value);

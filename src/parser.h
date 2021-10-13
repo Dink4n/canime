@@ -10,17 +10,18 @@ struct SubstrPos {
 };
 
 struct ParserResults {
+    char *buffer;
     int32_t count;
     struct SubstrPos matches[];
 };
 
 // Find the first occurrence of pattern in buffer
-struct SubstrPos parser_find(char *buffer, char *pattern);
+char *parser_find(char *buffer, char *pattern);
 
 // Find n occurences of pattern in buffer
 struct ParserResults *parser_findall(char *buffer, char *pattern, uint16_t n);
 
-// Convert substring position to a string, free after use
+// Convert substring position to a string, free() after use
 char *pos2str(char *buffer, struct SubstrPos *substr);
 
 #endif /* CANIME_PARSER_H */

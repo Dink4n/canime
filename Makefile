@@ -1,16 +1,26 @@
 .POSIX:
 
-CFLAGS := -Wall -Wextra -Wpedantic -D_POSIX_C_SOURCE=200809L
-LDFLAGS := -lcurl
+# includes and libs
+CFLAGS = $(INCS) -D_POSIX_C_SOURCE=200809L
+LDFLAGS = -lcurl -g
 
-BIN := canime
-SRC := src/main.c src/common.c src/web_client.c src/parser.c src/provider.c src/sites.c src/utils.c
-OBJ := $(patsubst src/%.c,obj/%.o,$(SRC))
-OBJ_DIR := obj
+# paths
+OBJ_DIR = obj
+DEST_DIR = /usr/local
 
-.PHONY: all clean
+BIN = canime
+SRC = src/main.c src/common.c src/web_client.c src/parser.c src/provider.c src/sites.c src/utils.c
+OBJ = $(patsubst src/%.c,obj/%.o,$(SRC))
 
-all: $(OBJ_DIR) $(BIN)
+.PHONY: all options clean install uninstall
+
+all: options $(OBJ_DIR) $(BIN)
+
+options:
+	@echo canime build options:
+	@echo "CFLAGS  = $(CFLAGS)"
+	@echo "LDFLAGS = $(LDFLAGS)"
+	@echo "CC      = $(CC)"
 
 $(BIN): $(OBJ)
 	$(CC) -o $(BIN) $(OBJ) $(LDFLAGS)
@@ -23,3 +33,11 @@ $(OBJ_DIR)/%.o: src/%.c
 
 clean:
 	$(RM) -rf $(OBJ_DIR) $(BIN)
+
+install: $(BIN)
+	mkdir -p $(DEST_DIR)/bin
+	cp -f $(BIN) $(DEST_DIR)/bin
+	chmod 755 $(DEST_DIR)/bin/$(BIN)
+
+uninstall:
+	rm -f $(DEST_DIR)/bin/$(BIN)

@@ -11,15 +11,12 @@ static size_t write_callback(void *contents, size_t size, size_t nmemb,
                              void *ctx)
 {
     size_t bytes = size * nmemb;
-    struct WebData *webdata = ctx;
+    struct WebPage *webpage = ctx;
 
-    /*
-     * re-allocate memory for previous buffer size + size of html page + 1 for
-     * null terminator
-     */
-    webdata->buffer = xrealloc(webdata->buffer, webdata->size + bytes + 1);
-    memcpy(webdata->buffer + webdata->size, contents, bytes);
-    webdata->size += bytes;
+    webpage->buffer = xrealloc(webpage->buffer, webpage->size + bytes + 1);
+    memcpy(webpage->buffer + webpage->size, contents, bytes);
+    webpage->size += bytes;
+    webpage->buffer[webpage->size] = '\0';
 
     return bytes;
 }
@@ -47,44 +44,42 @@ static char *encode_payload(char *key, char *value)
 // ----------------------------------------------------------------------------
 struct WebClient *web_client_init()
 {
-    struct WebClient *self = malloc(sizeof(struct WebClient));
+    struct WebClient *self = xmalloc(sizeof(struct WebClient));
 
     curl_global_init(CURL_GLOBAL_ALL);
     self->handle = curl_easy_init();
 
-    /* webdata */
-    self->webdata.size = 0;
-    self->webdata.buffer = xmalloc(1);
+    /* webpage */
+    self->webpage.size = 0;
+    self->webpage.buffer = xmalloc(1);
     curl_easy_setopt(self->handle, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(self->handle, CURLOPT_WRITEDATA, &self->webdata);
+    curl_easy_setopt(self->handle, CURLOPT_WRITEDATA, &self->webpage);
 
     return self;
 }
 
 void web_client_cleanup(struct WebClient *self)
 {
-    free(self->webdata.buffer);
+    /* Cleanup CURL stuff */
     curl_easy_cleanup(self->handle);
+
+    free(self->webpage.buffer);
+
+    /* We're done with libcurl, so clean it up */
     curl_global_cleanup();
+
     free(self);
 }
 
-void web_client_seturl(struct WebClient *self, char *url[])
+void web_client_seturl(struct WebClient *self, char *url, char *referer)
 {
+    unsigned int length = sizeof(self->url) - 1;
 
-    memset(self->url, 0, sizeof(self->url));
-
-    // NOTE: Append to self->url
-    for (char **ptr = url; *ptr != NULL; ptr++) {
-        strncat(self->url, *ptr, sizeof(self->url) - strlen(self->url) - 1);
-    }
-
-    // NOTE: Use sizeof array instead of NULL
-    /* for (int i = 0; i < ARRAY_SIZE(url); i++) { */
-    /*     strncat(self->url, url[i], sizeof(self->url) - strlen(self->url) - 1); */
-    /* } */
+    strncpy(self->url, url, length);
+    self->url[length] = '\0';
 
     curl_easy_setopt(self->handle, CURLOPT_URL, self->url);
+    curl_easy_setopt(self->handle, CURLOPT_REFERER, referer);
 }
 
 void web_client_setpayload(struct WebClient *self, char *key, char *value)
@@ -107,15 +102,14 @@ void web_client_setpayload(struct WebClient *self, char *key, char *value)
 
 void web_client_perform(struct WebClient *self)
 {
-    printf("Current URL: %s\n", self->url);
+    self->webpage.size = 0;
     CURLcode err = curl_easy_perform(self->handle);
     if (err != CURLE_OK) {
         die("libcurl: (%d) %s", err, curl_easy_strerror(err));
     }
-    self->webdata.buffer[self->webdata.size] = '\0';
 }
 
 char *web_client_getdata(struct WebClient *self)
 {
-    return self->webdata.buffer;
+    return self->webpage.buffer;
 }
