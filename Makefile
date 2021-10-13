@@ -2,7 +2,7 @@
 
 # includes and libs
 CFLAGS = $(INCS) -D_POSIX_C_SOURCE=200809L
-LDFLAGS = -lcurl -g
+LDFLAGS = -lcurl
 
 # paths
 OBJ_DIR = obj
