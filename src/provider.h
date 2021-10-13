@@ -10,7 +10,7 @@
 struct AnimeProvider {
     char *name;
     struct ParserResults *(*search)(char *query);
-    struct AnimeInfo (*get_metadata)(char *anime_id);
+    struct AnimeInfo *(*get_metadata)(char *anime_id);
     void (*get_sources)(struct AnimeInfo *anime);
 };
 

@@ -21,7 +21,7 @@ void run()
     int anime_sel_id;
     char *anime_sel;
     int episode_sel;
-    struct AnimeInfo anime;
+    struct AnimeInfo *anime;
     struct ParserResults *search_results;
 
     // Get the anime provider to use
@@ -49,22 +49,22 @@ void run()
     anime = anime_provider->get_metadata(anime_sel);
 
     // Get episode selection from user
-    episode_sel = ask_episode_sel(anime.total_episodes);
+    episode_sel = ask_episode_sel(anime->total_episodes);
 
-    anime.current_episode = episode_sel;
-    anime_provider->get_sources(&anime);
+    anime->current_episode = episode_sel;
+    anime_provider->get_sources(anime);
 
     char choice;
     while (1) {
-        // Clear the screen
-        system("clear");
-
         // Play the episode
-        play_episode(&anime);
+        play_episode(anime);
 
-        printf("Getting data for episode %d\n\n", anime.current_episode);
-        printf("Current playing %s episode %d/%d\n", anime.title,
-               anime.current_episode, anime.total_episodes);
+        // Clear the screen
+        fputs("\x1B[2J\x1B[1;1H", stdout);
+
+        printf("Getting data for episode %d\n\n", anime->current_episode);
+        printf("Current playing %s episode %d/%d\n", anime->title,
+               anime->current_episode, anime->total_episodes);
         puts("[n] next episode");
         puts("[p] previous episode");
         puts("[r] replay episode");
@@ -73,14 +73,15 @@ void run()
 
         fputs("Enter Choice: ", stdout);
         scanf(" %c", &choice);
-        if (handle_option_choice(choice, &anime)) {
+        if (handle_option_choice(choice, anime)) {
             break;
         }
 
-        anime_provider->get_sources(&anime);
+        anime_provider->get_sources(anime);
     }
 
     // Cleanup
+    free(anime);
     free(anime_sel);
     free(search_results);
     web_client_cleanup(web_client);

@@ -65,11 +65,11 @@ struct ParserResults *gogoanime_search(char *query)
     return results;
 }
 
-struct AnimeInfo gogoanime_get_metadata(char *anime_id)
+struct AnimeInfo *gogoanime_get_metadata(char *anime_id)
 {
     assert(anime_id != NULL);
 
-    struct AnimeInfo metadata;
+    struct AnimeInfo *metadata = malloc(sizeof(struct AnimeInfo));
     char *last_episode_str;
     int last_episode_num;
 
@@ -83,10 +83,10 @@ struct AnimeInfo gogoanime_get_metadata(char *anime_id)
 
     last_episode_num = strtol(last_episode_str, NULL, 10);
 
-    metadata.title = anime_id;
-    metadata.current_episode = 0;
-    metadata.total_episodes = last_episode_num;
-    metadata.episode = metadata.episode_cache;
+    metadata->title = anime_id;
+    metadata->current_episode = 0;
+    metadata->total_episodes = last_episode_num;
+    metadata->episode = metadata->episode_cache;
 
     free(last_episode_str);
 
@@ -154,11 +154,11 @@ struct ParserResults *nineanime_search(char *query)
     return results;
 }
 
-struct AnimeInfo nineanime_get_metadata(char *anime_id)
+struct AnimeInfo *nineanime_get_metadata(char *anime_id)
 {
     assert(anime_id != NULL);
 
-    struct AnimeInfo metadata = {0};
+    struct AnimeInfo *metadata = malloc(sizeof(struct AnimeInfo));
 
     return metadata;
 }
