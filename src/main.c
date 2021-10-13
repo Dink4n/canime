@@ -57,8 +57,7 @@ void run()
     char choice;
     while (1) {
         // Clear the screen
-        /* fputs("\x1B[2J\x1B[1;1H", stdout); */
-        /* system("clear"); */
+        system("clear");
 
         // Play the episode
         play_episode(&anime);
@@ -75,13 +74,9 @@ void run()
         fputs("Enter Choice: ", stdout);
         scanf(" %c", &choice);
         if (handle_option_choice(choice, &anime)) {
-            free(anime.episode->url);
-            free(anime.episode->referer);
             break;
         }
 
-        free(anime.episode->url);
-        free(anime.episode->referer);
         anime_provider->get_sources(&anime);
     }
 
