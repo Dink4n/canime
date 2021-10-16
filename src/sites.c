@@ -15,6 +15,7 @@
 #define INT2STR_SIZE 12
 
 extern struct WebClient *web_client;
+extern struct WebPage *web_page;
 
 // -----------------------------------------------------------------------------
 // Private Functions
@@ -59,7 +60,7 @@ struct ParserResults *gogoanime_search(char *query)
 
     web_client_perform(web_client);
 
-    results = parser_findall(web_client->webpage.buffer,
+    results = parser_findall(web_page->buffer,
                    "<p class=\"name\"><a href=\"/category/([^\"]*)\".*",
                    MAX_ANIME_SEARCH_RESULTS);
 
@@ -79,7 +80,7 @@ struct AnimeInfo *gogoanime_get_metadata(char *anime_id)
     web_client_seturl(web_client, url, NULL);
     web_client_perform(web_client);
 
-    last_episode_str = parser_find(web_client->webpage.buffer,
+    last_episode_str = parser_find(web_page->buffer,
             ".*<a href=\"#\" class=\"active\" ep_start = '0' ep_end = '([^']+)'>.*");
 
     last_episode_num = strtol(last_episode_str, NULL, 10);
@@ -107,19 +108,19 @@ void gogoanime_get_sources(struct AnimeInfo *anime)
     web_client_seturl(web_client, url, NULL);
     web_client_perform(web_client);
 
-    embedded_video_link = parser_find(web_client->webpage.buffer,
+    embedded_video_link = parser_find(web_page->buffer,
         "^[[:space:]]*<a href=\"#\" rel=\"100\" data-video=\"([^\"]*)\" >.*");
 
     embedded_video_url = xstrdup(JOIN_STR("https:", embedded_video_link));
     web_client_seturl(web_client, embedded_video_url, NULL);
 
     web_client_perform(web_client);
-    video_url = parser_find(web_client->webpage.buffer,
+    video_url = parser_find(web_page->buffer,
                             "^[[:space:]]*sources:\\[\\{file: '([^']*)'.*");
 
     web_client_seturl(web_client, video_url, embedded_video_url);
     web_client_perform(web_client);
-    highq_video = _get_lastline(web_client->webpage.buffer, web_client->webpage.size);
+    highq_video = _get_lastline(web_page->buffer, web_page->size);
 
     // Maximum video resolution is 1080. There is 4 characters in 1080
     // only thing that will change is that we add the resolution to the video_url.

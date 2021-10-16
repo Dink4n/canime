@@ -9,6 +9,7 @@
 
 // Global Variables
 struct WebClient *web_client;
+struct WebPage *web_page;
 
 // Local Variables
 static char *provider = DEFAULT_PROVIDER;
@@ -41,6 +42,7 @@ void run()
 
     // Initialize the web_client
     web_client = web_client_init();
+    web_page = &web_client->webpage;
 
     // If user didn't give query as argument. Then, ask for query
     if (query == NULL)
@@ -54,7 +56,7 @@ void run()
     anime_sel_id = ask_anime_sel();
 
     // convert SubstrPos to string
-    anime_sel = pos2str(web_client->webpage.buffer, &search_results->matches[anime_sel_id]);
+    anime_sel = pos2str(web_page->buffer, &search_results->matches[anime_sel_id]);
     anime = anime_provider->get_metadata(anime_sel);
 
     // Get episode selection from user

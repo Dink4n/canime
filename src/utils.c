@@ -9,6 +9,7 @@
 #include "provider.h"
 
 extern struct WebClient *web_client;
+extern struct WebPage *web_page;
 
 char *ask_search_query()
 {
@@ -86,7 +87,7 @@ void print_search_results(struct ParserResults *search_results)
             search_results->matches[i].end - search_results->matches[i].start;
 
         printf("[%d] %.*s\n", i + 1, length,
-               web_client->webpage.buffer + search_results->matches[i].start);
+               web_page->buffer + search_results->matches[i].start);
     }
 }
 
