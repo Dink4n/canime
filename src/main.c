@@ -16,6 +16,16 @@ static struct AnimeProvider *anime_provider = NULL;
 static char *progname = NULL;
 static char *query = NULL;
 
+void open_episode(struct AnimeInfo *anime)
+{
+    // Clear the screen
+    fputs("\x1B[2J\x1B[1;1H", stdout);
+
+    printf("Getting data for episode %d\n\n", anime->current_episode);
+    anime_provider->get_sources(anime);
+    play_episode(anime);
+}
+
 void run()
 {
     int anime_sel_id;
@@ -44,25 +54,17 @@ void run()
     anime_sel_id = ask_anime_sel();
 
     // convert SubstrPos to string
-    anime_sel = pos2str(web_client->webpage.buffer,
-                        &search_results->matches[anime_sel_id]);
+    anime_sel = pos2str(web_client->webpage.buffer, &search_results->matches[anime_sel_id]);
     anime = anime_provider->get_metadata(anime_sel);
 
     // Get episode selection from user
     episode_sel = ask_episode_sel(anime->total_episodes);
 
     anime->current_episode = episode_sel;
-    anime_provider->get_sources(anime);
+    open_episode(anime);
 
     char choice;
     while (1) {
-        // Play the episode
-        play_episode(anime);
-
-        // Clear the screen
-        fputs("\x1B[2J\x1B[1;1H", stdout);
-
-        printf("Getting data for episode %d\n\n", anime->current_episode);
         printf("Current playing %s episode %d/%d\n", anime->title,
                anime->current_episode, anime->total_episodes);
         puts("[n] next episode");
@@ -77,7 +79,7 @@ void run()
             break;
         }
 
-        anime_provider->get_sources(anime);
+        open_episode(anime);
     }
 
     // Cleanup

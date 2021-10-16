@@ -108,8 +108,3 @@ void web_client_perform(struct WebClient *self)
         die("libcurl: (%d) %s", err, curl_easy_strerror(err));
     }
 }
-
-char *web_client_getdata(struct WebClient *self)
-{
-    return self->webpage.buffer;
-}

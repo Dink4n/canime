@@ -32,7 +32,4 @@ void web_client_setpayload(struct WebClient *self, char *key, char *value);
 // Perfrom the transfer
 void web_client_perform(struct WebClient *self);
 
-// Get the data transfered
-char *web_client_getdata(struct WebClient *self);
-
 #endif /* CANIME_WEB_CLIENT_H */

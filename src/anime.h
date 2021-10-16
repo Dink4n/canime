@@ -17,5 +17,12 @@ struct AnimeInfo {
     struct Episode *episode;
 };
 
+struct SearchResults {
+    unsigned int total;
+    char **results;
+
+    // Addtional metadata
+    void *meta;
+};
 
 #endif /* CANIME_ANIME_H */

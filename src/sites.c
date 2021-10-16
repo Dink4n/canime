@@ -6,9 +6,11 @@
 
 #include "sites.h"
 #include "web_client.h"
-#include "parser.h"
 #include "common.h"
 #include "utils.h"
+
+#include "parser.h"
+#include "cJSON.h"
 
 #define INT2STR_SIZE 12
 
@@ -19,7 +21,6 @@ extern struct WebClient *web_client;
 // -----------------------------------------------------------------------------
 static char *_int2str(int number)
 {
-    // NOTE: May need to increase buffers
     static char result[INT2STR_SIZE];
     snprintf(result, sizeof(result), "%d", number);
 
@@ -45,7 +46,7 @@ static char *_get_lastline(char *str, unsigned int length)
 }
 
 // -----------------------------------------------------------------------------
-// GogoAnimeInfo
+// GogoAnime
 // -----------------------------------------------------------------------------
 struct ParserResults *gogoanime_search(char *query)
 {
@@ -53,12 +54,12 @@ struct ParserResults *gogoanime_search(char *query)
 
     struct ParserResults *results;
 
-    web_client_seturl(web_client, "https://gogoanime.vc/search.html", NULL);
+    web_client_seturl(web_client, "https://gogoanime.pe/search.html", NULL);
     web_client_setpayload(web_client, "keyword", query);
 
     web_client_perform(web_client);
 
-    results = parser_findall(web_client_getdata(web_client),
+    results = parser_findall(web_client->webpage.buffer,
                    "<p class=\"name\"><a href=\"/category/([^\"]*)\".*",
                    MAX_ANIME_SEARCH_RESULTS);
 
@@ -73,7 +74,7 @@ struct AnimeInfo *gogoanime_get_metadata(char *anime_id)
     char *last_episode_str;
     int last_episode_num;
 
-    char *url = JOIN_STR("https://gogoanime.vc/category/", anime_id, NULL);
+    char *url = JOIN_STR("https://gogoanime.pe/category/", anime_id, NULL);
 
     web_client_seturl(web_client, url, NULL);
     web_client_perform(web_client);
@@ -101,13 +102,12 @@ void gogoanime_get_sources(struct AnimeInfo *anime)
     char *embedded_video_url;
     unsigned int highq_video_len;
 
-    char *url = JOIN_STR("https://gogoanime.vc/", anime->title, "-episode-", _int2str(anime->current_episode));
+    char *url = JOIN_STR("https://gogoanime.pe/", anime->title, "-episode-", _int2str(anime->current_episode));
 
     web_client_seturl(web_client, url, NULL);
     web_client_perform(web_client);
 
-    embedded_video_link = parser_find(
-        web_client->webpage.buffer,
+    embedded_video_link = parser_find(web_client->webpage.buffer,
         "^[[:space:]]*<a href=\"#\" rel=\"100\" data-video=\"([^\"]*)\" >.*");
 
     embedded_video_url = xstrdup(JOIN_STR("https:", embedded_video_link));
@@ -140,21 +140,22 @@ void gogoanime_get_sources(struct AnimeInfo *anime)
 }
 
 // -----------------------------------------------------------------------------
-// 9anime
+// animepahe is working
 // -----------------------------------------------------------------------------
-struct ParserResults *nineanime_search(char *query)
+struct ParserResults *animepahe_search(char *query)
 {
     assert(query != NULL);
 
-    struct ParserResults *results = NULL;
+    struct ParserResults *results;
 
-    puts("Using nine anime");
-    printf("Query: %s", query);
+    web_client_seturl(web_client, "https://animepahe.com/api?l=8&m=search", NULL);
+    web_client_setpayload(web_client, "q", query);
+    web_client_perform(web_client);
 
     return results;
 }
 
-struct AnimeInfo *nineanime_get_metadata(char *anime_id)
+struct AnimeInfo *animepahe_get_metadata(char *anime_id)
 {
     assert(anime_id != NULL);
 
@@ -163,7 +164,7 @@ struct AnimeInfo *nineanime_get_metadata(char *anime_id)
     return metadata;
 }
 
-void nineanime_get_sources(struct AnimeInfo *anime)
+void animepahe_get_sources(struct AnimeInfo *anime)
 {
 }
 
