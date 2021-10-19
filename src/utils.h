@@ -22,7 +22,7 @@ int ask_episode_sel(int total_episodes);
 bool handle_option_choice(char choice, struct AnimeInfo *anime);
 
 // Print anime search results
-void print_search_results(struct ParserResults *search_results);
+void print_search_results(struct SearchResults *search_results);
 
 // Play the anime
 void play_episode(struct AnimeInfo *metadata);

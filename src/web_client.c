@@ -73,7 +73,7 @@ void web_client_cleanup(struct WebClient *self)
 
 void web_client_seturl(struct WebClient *self, char *url, char *referer)
 {
-    unsigned int length = sizeof(self->url) - 1;
+    unsigned int length = URL_BUF_SIZE - 1;
 
     strncpy(self->url, url, length);
     self->url[length] = '\0';

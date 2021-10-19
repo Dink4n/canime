@@ -8,7 +8,9 @@ char *parser_find(char *buffer, char *pattern)
 {
     regex_t regex;
     regmatch_t pmatch[2];
+    unsigned int length;
     struct SubstrPos substr_pos;
+    static char result[MAX_PARSER_MATCH_SIZE] = { 0 };
 
     if (regcomp(&regex, pattern, REG_NEWLINE | REG_EXTENDED))
         die("regcomp: Cannot compile regex");
@@ -20,46 +22,44 @@ char *parser_find(char *buffer, char *pattern)
         substr_pos.end = pmatch[1].rm_eo;
     }
 
+    length = substr_pos.end - substr_pos.start;
+    strncpy(result, buffer + substr_pos.start, length);
+    result[length] = '\0';
+
     regfree(&regex);
-    return pos2str(buffer, &substr_pos);
+    return result;
 }
 
-struct ParserResults *parser_findall(char *buffer, char *pattern, uint16_t n)
+struct ParserResults *parser_findall(char *buffer, char *pattern)
 {
     regex_t regex;
     regoff_t offset = 0;
     regmatch_t pmatch[2];
-    struct ParserResults *results =
-        xmalloc(sizeof(struct ParserResults) + (sizeof(struct SubstrPos) * n));
+    static struct ParserResults results = { 0 };
 
-    results->buffer = buffer;
     if (regcomp(&regex, pattern, REG_NEWLINE | REG_EXTENDED))
         die("regcomp: Cannot compile regex");
 
     int i;
-    for (i = 0; i < n; i++) {
+    struct SubstrPos substr_pos = { 0 };
+    unsigned int length;
+
+    for (i = 0; i < MAX_PARSER_MATCHES; i++) {
         if (regexec(&regex, buffer + offset, ARRAY_SIZE(pmatch), pmatch, 0))
             break;
 
-        results->matches[i].start = pmatch[1].rm_so + offset;
-        results->matches[i].end = pmatch[1].rm_eo + offset;
+        substr_pos.start = pmatch[1].rm_so + offset;
+        substr_pos.end = pmatch[1].rm_eo + offset;
+        length = substr_pos.end - substr_pos.start;
+
+        strncpy(results.matches[i], buffer + substr_pos.start, length);
+        results.matches[i][length] = '\0';
 
         offset += pmatch[1].rm_eo;
     }
 
-    results->count = i;
+    results.count = i;
 
     regfree(&regex);
-    return results;
-}
-
-char *pos2str(char *buffer, struct SubstrPos *substr)
-{
-    int length = substr->end - substr->start;
-    char *result = xmalloc(length + 1);
-
-    strncpy(result, buffer + substr->start, length);
-    result[length] = '\0';
-
-    return result;
+    return &results;
 }

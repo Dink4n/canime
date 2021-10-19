@@ -1,8 +1,9 @@
 #ifndef CANIME_ANIME_H
 #define CANIME_ANIME_H
 
-#define ANIME_NAME_LEN 128
-#define MAX_EPISODE_CACHE_SIZE 3
+#define MAX_ANIME_NAME_LEN            128
+#define MAX_EPISODE_CACHE_SIZE        2
+#define MAX_ANIME_SEARCH_RESULTS      10
 
 struct Episode {
     char *url;
@@ -19,7 +20,7 @@ struct AnimeInfo {
 
 struct SearchResults {
     unsigned int total;
-    char **results;
+    char results[MAX_ANIME_SEARCH_RESULTS][MAX_ANIME_NAME_LEN];
 
     // Addtional metadata
     void *meta;

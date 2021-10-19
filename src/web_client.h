@@ -23,7 +23,7 @@ struct WebClient *web_client_init();
 // Cleanup web_client
 void web_client_cleanup(struct WebClient *self);
 
-// Set the URL. The last element of URL array must be a NULL ptr
+// Set the URL
 void web_client_seturl(struct WebClient *self, char *url, char *referer);
 
 // Set the payload

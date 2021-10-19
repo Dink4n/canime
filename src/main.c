@@ -16,8 +16,9 @@ static char *provider = DEFAULT_PROVIDER;
 static struct AnimeProvider *anime_provider = NULL;
 static char *progname = NULL;
 static char *query = NULL;
+static struct AnimeInfo *anime = NULL;
 
-void open_episode(struct AnimeInfo *anime)
+void open_episode()
 {
     // Clear the screen
     fputs("\x1B[2J\x1B[1;1H", stdout);
@@ -32,8 +33,7 @@ void run()
     int anime_sel_id;
     char *anime_sel;
     int episode_sel;
-    struct AnimeInfo *anime;
-    struct ParserResults *search_results;
+    struct SearchResults *search_results;
 
     // Get the anime provider to use
     anime_provider = get_anime_provider(provider);
@@ -55,15 +55,15 @@ void run()
     // Get anime selection from user
     anime_sel_id = ask_anime_sel();
 
-    // convert SubstrPos to string
-    anime_sel = pos2str(web_page->buffer, &search_results->matches[anime_sel_id]);
+    // Duplicate it in the heap
+    anime_sel = xstrdup(search_results->results[anime_sel_id]);
     anime = anime_provider->get_metadata(anime_sel);
 
     // Get episode selection from user
     episode_sel = ask_episode_sel(anime->total_episodes);
 
     anime->current_episode = episode_sel;
-    open_episode(anime);
+    open_episode();
 
     char choice;
     while (1) {
@@ -81,13 +81,11 @@ void run()
             break;
         }
 
-        open_episode(anime);
+        open_episode();
     }
 
     // Cleanup
     free(anime);
-    free(anime_sel);
-    free(search_results);
     web_client_cleanup(web_client);
 }
 
@@ -132,9 +130,12 @@ int main(int argc, char *argv[])
     }
 
 main_code:
+
     if (optind < argc)
         query = argv[optind];
+
     run();
+
 
     return 0;
 }

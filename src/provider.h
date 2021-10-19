@@ -5,11 +5,9 @@
 #include "parser.h"
 #include "anime.h"
 
-#define MAX_ANIME_SEARCH_RESULTS 10
-
 struct AnimeProvider {
     char *name;
-    struct ParserResults *(*search)(char *query);
+    struct SearchResults *(*search)(char *query);
     struct AnimeInfo *(*get_metadata)(char *anime_id);
     void (*get_sources)(struct AnimeInfo *anime);
 };

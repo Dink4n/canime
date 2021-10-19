@@ -49,22 +49,28 @@ static char *_get_lastline(char *str, unsigned int length)
 // -----------------------------------------------------------------------------
 // GogoAnime
 // -----------------------------------------------------------------------------
-struct ParserResults *gogoanime_search(char *query)
+struct SearchResults *gogoanime_search(char *query)
 {
     assert(query != NULL);
 
-    struct ParserResults *results;
+    struct ParserResults *regex_results;
+    static struct SearchResults results;
 
     web_client_seturl(web_client, "https://gogoanime.pe/search.html", NULL);
     web_client_setpayload(web_client, "keyword", query);
 
     web_client_perform(web_client);
 
-    results = parser_findall(web_page->buffer,
-                   "<p class=\"name\"><a href=\"/category/([^\"]*)\".*",
-                   MAX_ANIME_SEARCH_RESULTS);
+    regex_results = parser_findall(web_page->buffer,
+                   "<p class=\"name\"><a href=\"/category/([^\"]*)\".*");
 
-    return results;
+    results.total = regex_results->count;
+    for (int i = 0; i < MAX_ANIME_SEARCH_RESULTS; i++) {
+        memcpy(results.results[i], regex_results->matches[i],
+               MAX_ANIME_NAME_LEN);
+    }
+
+    return &results;
 }
 
 struct AnimeInfo *gogoanime_get_metadata(char *anime_id)
@@ -90,8 +96,6 @@ struct AnimeInfo *gogoanime_get_metadata(char *anime_id)
     metadata->total_episodes = last_episode_num;
     metadata->episode = metadata->episode_cache;
 
-    free(last_episode_str);
-
     return metadata;
 }
 
@@ -99,26 +103,26 @@ void gogoanime_get_sources(struct AnimeInfo *anime)
 {
     assert(anime != NULL);
 
-    char *embedded_video_link, *video_url, *highq_video, *video_url_end;
-    char *embedded_video_url;
-    unsigned int highq_video_len;
+    char *old_embedded_video_url, *old_video_url, *highq_video, *video_url_end;
+    char *embedded_video_url, *video_url;
+    unsigned int highq_video_len, video_url_len;
 
     char *url = JOIN_STR("https://gogoanime.pe/", anime->title, "-episode-", _int2str(anime->current_episode));
 
     web_client_seturl(web_client, url, NULL);
     web_client_perform(web_client);
 
-    embedded_video_link = parser_find(web_page->buffer,
+    old_embedded_video_url = parser_find(web_page->buffer,
         "^[[:space:]]*<a href=\"#\" rel=\"100\" data-video=\"([^\"]*)\" >.*");
 
-    embedded_video_url = xstrdup(JOIN_STR("https:", embedded_video_link));
-    web_client_seturl(web_client, embedded_video_url, NULL);
+    embedded_video_url = xstrdup(JOIN_STR("https:", old_embedded_video_url));
 
+    web_client_seturl(web_client, embedded_video_url, NULL);
     web_client_perform(web_client);
-    video_url = parser_find(web_page->buffer,
+    old_video_url = parser_find(web_page->buffer,
                             "^[[:space:]]*sources:\\[\\{file: '([^']*)'.*");
 
-    web_client_seturl(web_client, video_url, embedded_video_url);
+    web_client_seturl(web_client, old_video_url, embedded_video_url);
     web_client_perform(web_client);
     highq_video = _get_lastline(web_page->buffer, web_page->size);
 
@@ -126,7 +130,12 @@ void gogoanime_get_sources(struct AnimeInfo *anime)
     // only thing that will change is that we add the resolution to the video_url.
     // the load time increases dramatically and the a '.' character just before
     // the resolution. Plus the null terminator
-    video_url = xrealloc(video_url, strlen(video_url) + 5 + 1);
+    video_url_len = strlen(old_video_url) + 5 + 1;
+
+    video_url = xmalloc(video_url_len);
+    memcpy(video_url, old_video_url, video_url_len);
+    video_url[video_url_len - 1] = '\0';
+
     video_url_end = strrchr(video_url, '/') + 1;
     highq_video_len = strlen(highq_video);
 
@@ -137,23 +146,22 @@ void gogoanime_get_sources(struct AnimeInfo *anime)
     anime->episode->url = video_url;
     anime->episode->referer = embedded_video_url;
 
-    free(embedded_video_link);
 }
 
 // -----------------------------------------------------------------------------
 // animepahe is working
 // -----------------------------------------------------------------------------
-struct ParserResults *animepahe_search(char *query)
+struct SearchResults *animepahe_search(char *query)
 {
     assert(query != NULL);
 
-    struct ParserResults *results;
+    static struct SearchResults results;
 
     web_client_seturl(web_client, "https://animepahe.com/api?l=8&m=search", NULL);
     web_client_setpayload(web_client, "q", query);
     web_client_perform(web_client);
 
-    return results;
+    return &results;
 }
 
 struct AnimeInfo *animepahe_get_metadata(char *anime_id)

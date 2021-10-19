@@ -13,7 +13,7 @@ extern struct WebPage *web_page;
 
 char *ask_search_query()
 {
-    static char anime_name[ANIME_NAME_LEN];
+    static char anime_name[MAX_ANIME_NAME_LEN];
     fputs("Enter Anime: ", stdout);
     fgets(anime_name, sizeof(anime_name), stdin);
 
@@ -77,17 +77,13 @@ bool handle_option_choice(char choice, struct AnimeInfo *anime)
      return false;
 }
 
-void print_search_results(struct ParserResults *search_results)
+void print_search_results(struct SearchResults *search_results)
 {
     int length;
 
     // pretty print the search results
-    for (int i = search_results->count - 1; i >= 0; i--) {
-        length =
-            search_results->matches[i].end - search_results->matches[i].start;
-
-        printf("[%d] %.*s\n", i + 1, length,
-               web_page->buffer + search_results->matches[i].start);
+    for (int i = search_results->total - 1; i >= 0; i--) {
+        printf("[%d] %s\n", i + 1, search_results->results[i]);
     }
 }
 
@@ -95,9 +91,10 @@ void play_episode(struct AnimeInfo *metadata)
 {
     if (fork() == 0) {
         // Set the referer
-        char header_fields[32 + URL_BUF_SIZE];
+        char *args = "--http-header-fields=Referer: ";
+        char header_fields[strlen(args) + URL_BUF_SIZE];
         snprintf(header_fields, sizeof(header_fields),
-                 "--http-header-fields=Referer: %s", metadata->episode->referer);
+                 "%s%s", args, metadata->episode->referer);
 
         char *command[] = { "mpv", "--really-quiet", header_fields,
                             metadata->episode->url, NULL };
