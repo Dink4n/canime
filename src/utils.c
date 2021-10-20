@@ -79,9 +79,13 @@ bool handle_option_choice(char choice, struct AnimeInfo *anime)
 
 void print_search_results(struct SearchResults *search_results)
 {
-    // Color print
     char *color;
     char *fmt = "%s[%s%d%s]%s %s%s%s\n";
+
+    if (search_results->total > MAX_ANIME_SEARCH_RESULTS)
+        search_results->total = MAX_ANIME_SEARCH_RESULTS;
+
+    // Color print
     for (int i = search_results->total - 1; i >= 0; i--) {
         color = (i % 2 == 0) ? C_BYEL : C_RESET;
         printf(fmt, C_BBLU, C_BCYN, i + 1, C_BBLU, C_RESET, color,

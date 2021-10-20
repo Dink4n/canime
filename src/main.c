@@ -8,35 +8,35 @@
 
 #define DEFAULT_PROVIDER "gogoanime"
 
+// -----------------------------------------------------------------------------
 // Global Variables
+// -----------------------------------------------------------------------------
 struct WebClient *web_client;
 struct WebPage *web_page;
 
+// -----------------------------------------------------------------------------
 // Local Variables
+// -----------------------------------------------------------------------------
 static char *provider = DEFAULT_PROVIDER;
 static struct AnimeProvider *anime_provider = NULL;
 static char *progname = NULL;
 static char *query = NULL;
 static struct AnimeInfo *anime = NULL;
 
-void open_episode()
+// -----------------------------------------------------------------------------
+// Function Declarations
+// -----------------------------------------------------------------------------
+void init();
+void get_initial_input();
+void run();
+void open_episode();
+void usage();
+
+// -----------------------------------------------------------------------------
+// Function Definitions
+// -----------------------------------------------------------------------------
+void init()
 {
-    // Clear the screen
-    // NOTE: Make this portable. Maybe use ncurses or something?
-    fputs("\x1B[2J\x1B[1;1H", stdout);
-
-    printf("Getting data for episode %d\n\n", anime->current_episode);
-    anime_provider->get_sources(anime);
-    play_episode(anime);
-}
-
-void run()
-{
-    int anime_sel_id;
-    char *anime_sel;
-    int episode_sel;
-    struct SearchResults *search_results;
-
     // Get the anime provider to use
     anime_provider = get_anime_provider(provider);
     if (anime_provider == NULL)
@@ -45,6 +45,14 @@ void run()
     // Initialize the web_client
     web_client = web_client_init();
     web_page = &web_client->webpage;
+}
+
+void get_initial_input()
+{
+    int anime_sel_id;
+    int episode_sel;
+    char *anime_sel = NULL;
+    struct SearchResults *search_results = NULL;
 
     // If user didn't give query as argument. Then, ask for query
     if (query == NULL)
@@ -62,9 +70,15 @@ void run()
     anime = anime_provider->get_metadata(anime_sel);
 
     // Get episode selection from user
-    episode_sel = ask_episode_sel(anime->total_episodes);
+    episode_sel = 1;
+    if (anime->total_episodes > 1)
+        episode_sel = ask_episode_sel(anime->total_episodes);
 
     anime->current_episode = episode_sel;
+}
+
+void run()
+{
     open_episode();
 
     char choice;
@@ -87,6 +101,18 @@ void run()
     free(anime);
     web_client_cleanup(web_client);
 }
+
+void open_episode()
+{
+    // Clear the screen
+    // TODO: Make this portable. Maybe use ncurses or something?
+    fputs("\x1B[2J\x1B[1;1H", stdout);
+
+    printf("Getting data for episode %d\n\n", anime->current_episode);
+    anime_provider->get_sources(anime);
+    play_episode(anime);
+}
+
 
 void usage()
 {
@@ -133,6 +159,8 @@ main_code:
     if (optind < argc)
         query = argv[optind];
 
+    init();
+    get_initial_input();
     run();
 
 
