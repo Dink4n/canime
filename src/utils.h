@@ -2,6 +2,7 @@
 #define CANIME_UTILS_H
 
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "parser.h"
 #include "anime.h"
@@ -23,6 +24,9 @@ bool handle_option_choice(char choice, struct AnimeInfo *anime);
 
 // Print anime search results
 void print_search_results(struct SearchResults *search_results);
+
+// Print options
+void print_options();
 
 // Play the anime
 void play_episode(struct AnimeInfo *metadata);

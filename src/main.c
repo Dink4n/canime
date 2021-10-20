@@ -1,6 +1,7 @@
 #include <unistd.h>
 
 #include "common.h"
+#include "colors.h"
 #include "web_client.h"
 #include "provider.h"
 #include "utils.h"
@@ -21,6 +22,7 @@ static struct AnimeInfo *anime = NULL;
 void open_episode()
 {
     // Clear the screen
+    // NOTE: Make this portable. Maybe use ncurses or something?
     fputs("\x1B[2J\x1B[1;1H", stdout);
 
     printf("Getting data for episode %d\n\n", anime->current_episode);
@@ -67,15 +69,12 @@ void run()
 
     char choice;
     while (1) {
-        printf("Current playing %s episode %d/%d\n", anime->title,
-               anime->current_episode, anime->total_episodes);
-        puts("[n] next episode");
-        puts("[p] previous episode");
-        puts("[r] replay episode");
-        puts("[s] select episode");
-        puts("[q] quit");
+        printf("%sCurrent playing %s episode %s%d/%d%s\n", C_BGRN, anime->title,
+               C_BCYN, anime->current_episode, anime->total_episodes, C_RESET);
 
-        fputs("Enter Choice: ", stdout);
+        print_options();
+
+        printf("%sEnter Choice%s: ", C_BBLU, C_RESET);
         scanf(" %c", &choice);
         if (handle_option_choice(choice, anime)) {
             break;

@@ -10,7 +10,7 @@ void die(const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
 
-    fputs(C_RED, stderr);
+    fputs(C_BRED, stderr);
     vfprintf(stderr, fmt, args);
     fputc('\n', stderr);
     fputs(C_RESET, stderr);

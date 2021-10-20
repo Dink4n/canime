@@ -2,10 +2,10 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/wait.h>
 
 #include "utils.h"
 #include "common.h"
+#include "colors.h"
 #include "provider.h"
 
 extern struct WebClient *web_client;
@@ -23,7 +23,7 @@ char *ask_search_query()
 int ask_anime_sel()
 {
     int sel;
-    fputs("Enter Selection: ", stdout);
+    printf("%sEnter Selection:%s ", C_BBLU, C_RESET);
     scanf("%2d", &sel);
     getchar();
 
@@ -36,7 +36,8 @@ int ask_anime_sel()
 int ask_episode_sel(int total_episodes)
 {
     int sel;
-    printf("Select Episode [1-%d]: ", total_episodes);
+    printf("%sChoose Episode %s[1-%d]%s: ", C_BBLU, C_BCYN, total_episodes,
+           C_RESET);
     scanf("%2d", &sel);
     getchar();
 
@@ -62,7 +63,6 @@ bool handle_option_choice(char choice, struct AnimeInfo *anime)
         break;
 
     case 's':
-        fputs("\x1B[2J\x1B[1;1H", stdout);
         anime->current_episode = ask_episode_sel(anime->total_episodes);
         break;
 
@@ -70,7 +70,7 @@ bool handle_option_choice(char choice, struct AnimeInfo *anime)
         return true;
 
     default:
-        puts("Invalid choice");
+        printf("%sInvalid choice%s\n", C_BRED, C_RESET);
         return true;
     };
 
@@ -79,12 +79,30 @@ bool handle_option_choice(char choice, struct AnimeInfo *anime)
 
 void print_search_results(struct SearchResults *search_results)
 {
-    int length;
-
-    // pretty print the search results
+    // Color print
+    char *color;
+    char *fmt = "%s[%s%d%s]%s %s%s%s\n";
     for (int i = search_results->total - 1; i >= 0; i--) {
-        printf("[%d] %s\n", i + 1, search_results->results[i]);
+        color = (i % 2 == 0) ? C_BYEL : C_RESET;
+        printf(fmt, C_BBLU, C_BCYN, i + 1, C_BBLU, C_RESET, color,
+               search_results->results[i], C_RESET);
     }
+}
+
+void print_options()
+{
+    char *fmt = "%s[%s%c%s]%s %s%s%s\n";
+
+    printf(fmt, C_BBLU, C_BCYN, 'n', C_BBLU, C_RESET,
+           C_BYEL, "next episode", C_RESET);
+    printf(fmt, C_BBLU, C_BCYN, 'p', C_BBLU, C_RESET,
+           C_BMAG, "previous episode", C_RESET);
+    printf(fmt, C_BBLU, C_BCYN, 's', C_BBLU, C_RESET,
+           C_BYEL, "select episode", C_RESET);
+    printf(fmt, C_BBLU, C_BCYN, 'r', C_BBLU, C_RESET,
+           C_BMAG, "replay episode", C_RESET);
+    printf(fmt, C_BBLU, C_BCYN, 'q', C_BBLU, C_RESET,
+           C_BRED, "quit", C_RESET);
 }
 
 void play_episode(struct AnimeInfo *metadata)
