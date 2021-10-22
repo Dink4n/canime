@@ -94,7 +94,6 @@ struct AnimeInfo *gogoanime_get_metadata(char *anime_id)
     metadata->title = anime_id;
     metadata->current_episode = 0;
     metadata->total_episodes = last_episode_num;
-    metadata->episode = metadata->episode_cache;
 
     return metadata;
 }
@@ -103,49 +102,43 @@ void gogoanime_get_sources(struct AnimeInfo *anime)
 {
     assert(anime != NULL);
 
-    char *old_embedded_video_url, *old_video_url, *highq_video, *video_url_end;
-    char *embedded_video_url, *video_url;
-    unsigned int highq_video_len, video_url_len;
+    char *video_url, *highq_video, *video_url_end, *embedded_video_url;
+    unsigned int highq_video_len;
 
     char *url = JOIN_STR("https://gogoanime.pe/", anime->title, "-episode-", _int2str(anime->current_episode));
 
     web_client_seturl(web_client, url, NULL);
     web_client_perform(web_client);
 
-    old_embedded_video_url = parser_find(web_page->buffer,
+    embedded_video_url = parser_find(web_page->buffer,
         "^[[:space:]]*<a href=\"#\" rel=\"100\" data-video=\"([^\"]*)\" >.*");
 
-    embedded_video_url = xstrdup(JOIN_STR("https:", old_embedded_video_url));
+    embedded_video_url = JOIN_STR("https:", embedded_video_url);
 
     web_client_seturl(web_client, embedded_video_url, NULL);
     web_client_perform(web_client);
-    old_video_url = parser_find(web_page->buffer,
+    video_url = parser_find(web_page->buffer,
                             "^[[:space:]]*sources:\\[\\{file: '([^']*)'.*");
 
-    web_client_seturl(web_client, old_video_url, embedded_video_url);
+    web_client_seturl(web_client, video_url, embedded_video_url);
     web_client_perform(web_client);
     highq_video = _get_lastline(web_page->buffer, web_page->size);
 
-    // Maximum video resolution is 1080. There is 4 characters in 1080
-    // only thing that will change is that we add the resolution to the video_url.
-    // the load time increases dramatically and the a '.' character just before
-    // the resolution. Plus the null terminator
-    video_url_len = strlen(old_video_url) + 5 + 1;
+    // Copy referer and url to the result
+    strncpy(anime->episode.referer, embedded_video_url, sizeof(anime->episode.referer) - 1);
+    anime->episode.referer[sizeof(anime->episode.referer) - 1] = '\0';
 
-    video_url = xmalloc(video_url_len);
-    memcpy(video_url, old_video_url, video_url_len);
-    video_url[video_url_len - 1] = '\0';
+    strncpy(anime->episode.url, video_url,
+            sizeof(anime->episode.url) - 1);
 
-    video_url_end = strrchr(video_url, '/') + 1;
+    // Get the file name part from the video url
+    video_url_end = strrchr(anime->episode.url, '/') + 1;
     highq_video_len = strlen(highq_video);
 
-    // Remove the pesky newline character at the end
+    // Replace the filename with highq_video
+    // Also remove the pesky newline character at the end
     memcpy(video_url_end, highq_video, highq_video_len - 1);
     video_url_end[highq_video_len - 1] = '\0';
-
-    anime->episode->url = video_url;
-    anime->episode->referer = embedded_video_url;
-
 }
 
 // -----------------------------------------------------------------------------

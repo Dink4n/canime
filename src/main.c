@@ -51,7 +51,6 @@ void get_initial_input()
 {
     int anime_sel_id;
     int episode_sel;
-    char *anime_sel = NULL;
     struct SearchResults *search_results = NULL;
 
     // If user didn't give query as argument. Then, ask for query
@@ -65,9 +64,7 @@ void get_initial_input()
     // Get anime selection from user
     anime_sel_id = ask_anime_sel();
 
-    // Duplicate it in the heap
-    anime_sel = xstrdup(search_results->results[anime_sel_id]);
-    anime = anime_provider->get_metadata(anime_sel);
+    anime = anime_provider->get_metadata(search_results->results[anime_sel_id]);
 
     // Get episode selection from user
     episode_sel = 1;

@@ -25,7 +25,7 @@ int ask_anime_sel()
     int sel;
     printf("%sEnter Selection:%s ", C_BBLU, C_RESET);
     scanf("%2d", &sel);
-    getchar();
+    fflush(stdin);
 
     if (sel >= MAX_ANIME_SEARCH_RESULTS || sel <= 0)
         die("Invalid Selection");
@@ -85,7 +85,7 @@ void print_search_results(struct SearchResults *search_results)
     if (search_results->total > MAX_ANIME_SEARCH_RESULTS)
         search_results->total = MAX_ANIME_SEARCH_RESULTS;
 
-    // Color print
+    // print with colors
     for (int i = search_results->total - 1; i >= 0; i--) {
         color = (i % 2 == 0) ? C_BYEL : C_RESET;
         printf(fmt, C_BBLU, C_BCYN, i + 1, C_BBLU, C_RESET, color,
@@ -109,19 +109,21 @@ void print_options()
            C_BRED, "quit", C_RESET);
 }
 
-void play_episode(struct AnimeInfo *metadata)
+void play_episode(struct AnimeInfo *anime)
 {
     if (fork() == 0) {
+        setsid();
+
         // Set the referer
         char *args = "--http-header-fields=Referer: ";
         char header_fields[strlen(args) + URL_BUF_SIZE];
         snprintf(header_fields, sizeof(header_fields),
-                 "%s%s", args, metadata->episode->referer);
+                 "%s%s", args, anime->episode.referer);
 
         char *command[] = { "mpv", "--really-quiet", header_fields,
-                            metadata->episode->url, NULL };
+                            anime->episode.url, NULL };
 
-        setsid();
+        // execute mpv
         execvp(command[0], command);
 
         // If it got here, it's an error
