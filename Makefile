@@ -14,7 +14,7 @@ OBJ = $(patsubst src/%.c,obj/%.o,$(SRC))
 
 .PHONY: all options clean install uninstall
 
-all: options $(OBJ_DIR) $(BIN)
+all: options $(BIN)
 
 options:
 	@echo canime build options:
@@ -22,7 +22,7 @@ options:
 	@echo "LDFLAGS = $(LDFLAGS)"
 	@echo "CC      = $(CC)"
 
-$(BIN): $(OBJ)
+$(BIN): $(OBJ_DIR) $(OBJ)
 	$(CC) -o $(BIN) $(OBJ) $(LDFLAGS)
 
 $(OBJ_DIR):
