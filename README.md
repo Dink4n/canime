@@ -11,6 +11,6 @@ sudo make clean install
 ```
 
 ## TODO
-- [] parallel downloads
-- [] video quality selection
-- [] more providers!
+- [ ] parallel downloads
+- [ ] video quality selection
+- [ ] more providers!
