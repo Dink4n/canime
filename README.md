@@ -4,7 +4,7 @@
  </div>
 
 ## WIP
-Stay tuned, more features comming soon!
+Stay tuned, more features coming soon!
 
 ## Installation
 ```Console
@@ -19,7 +19,7 @@ $ sudo make clean install
 * curl
 
 ## TODO
-- [ ] parallel downloads
+- [ ] parallel downloading
 - [ ] video quality selection
 - [ ] more providers!
 
