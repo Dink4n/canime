@@ -9,10 +9,8 @@ OBJ_DIR = obj
 DEST_DIR = /usr/local
 
 BIN = canime
-SRC = src/main.c src/common.c src/web_client.c src/parser.c src/provider.c src/sites.c src/utils.c
+SRC = $(wildcard src/*.c) $(wildcard src/**/*.c)
 OBJ = $(patsubst src/%.c,obj/%.o,$(SRC))
-
-.PHONY: all options clean install uninstall
 
 all: options $(BIN)
 
@@ -22,13 +20,11 @@ options:
 	@echo "LDFLAGS = $(LDFLAGS)"
 	@echo "CC      = $(CC)"
 
-$(BIN): $(OBJ_DIR) $(OBJ)
+$(BIN): $(OBJ)
 	$(CC) -o $(BIN) $(OBJ) $(LDFLAGS)
 
-$(OBJ_DIR):
-	mkdir -p $@
-
 $(OBJ_DIR)/%.o: src/%.c
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 clean:
@@ -41,3 +37,5 @@ install: $(BIN)
 
 uninstall:
 	rm -f $(DEST_DIR)/bin/$(BIN)
+
+.PHONY: all options clean install uninstall
