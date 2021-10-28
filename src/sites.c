@@ -5,12 +5,12 @@
 #include <assert.h>
 
 #include "sites.h"
-#include "web_client.h"
 #include "common.h"
 #include "utils.h"
+#include "web_client.h"
 
-#include "parser.h"
-#include "cJSON.h"
+#include "parser/regex.h"
+#include "parser/json.h"
 
 #define INT2STR_SIZE 12
 
@@ -53,7 +53,7 @@ struct SearchResults *gogoanime_search(char *query)
 {
     assert(query != NULL);
 
-    struct ParserResults *regex_results;
+    struct RegexResults *regex_results;
     static struct SearchResults results;
 
     web_client_seturl(web_client, "https://gogoanime.pe/search.html", NULL);
@@ -61,7 +61,7 @@ struct SearchResults *gogoanime_search(char *query)
 
     web_client_perform(web_client);
 
-    regex_results = parser_findall(web_page->buffer,
+    regex_results = regex_findall(web_page->buffer,
                    "<p class=\"name\"><a href=\"/category/([^\"]*)\".*");
 
     results.total = regex_results->count;
@@ -86,7 +86,7 @@ struct AnimeInfo *gogoanime_get_metadata(char *anime_id)
     web_client_seturl(web_client, url, NULL);
     web_client_perform(web_client);
 
-    last_episode_str = parser_find(web_page->buffer,
+    last_episode_str = regex_find(web_page->buffer,
             ".*<a href=\"#\" class=\"active\" ep_start = '0' ep_end = '([^']+)'>.*");
 
     last_episode_num = strtol(last_episode_str, NULL, 10);
@@ -110,14 +110,14 @@ void gogoanime_get_sources(struct AnimeInfo *anime)
     web_client_seturl(web_client, url, NULL);
     web_client_perform(web_client);
 
-    embedded_video_url = parser_find(web_page->buffer,
+    embedded_video_url = regex_find(web_page->buffer,
         "^[[:space:]]*<a href=\"#\" rel=\"100\" data-video=\"([^\"]*)\" >.*");
 
     embedded_video_url = JOIN_STR("https:", embedded_video_url);
 
     web_client_seturl(web_client, embedded_video_url, NULL);
     web_client_perform(web_client);
-    video_url = parser_find(web_page->buffer,
+    video_url = regex_find(web_page->buffer,
                             "^[[:space:]]*sources:\\[\\{file: '([^']*)'.*");
 
     web_client_seturl(web_client, video_url, embedded_video_url);
@@ -142,7 +142,7 @@ void gogoanime_get_sources(struct AnimeInfo *anime)
 }
 
 // -----------------------------------------------------------------------------
-// animepahe is working
+// AnimePahe
 // -----------------------------------------------------------------------------
 struct SearchResults *animepahe_search(char *query)
 {

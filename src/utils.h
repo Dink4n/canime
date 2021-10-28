@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "parser.h"
+#include "parser/regex.h"
 #include "anime.h"
 
 #define MAX_TEXT_BUFFER_SIZE 256
@@ -28,10 +28,10 @@ void print_search_results(struct SearchResults *search_results);
 // Print options
 void print_options();
 
-// Play the anime
-void play_episode(struct AnimeInfo *metadata);
-
 // Join strings. Be sure to free() it
 char *join_str(char **str_list);
+
+// Play the anime
+void play_episode(struct AnimeInfo *metadata);
 
 #endif /* CANIME_UTILS_H */

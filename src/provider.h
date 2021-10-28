@@ -1,9 +1,10 @@
 #ifndef CANIME_PROVIDER_H
 #define CANIME_PROVIDER_H
 
-#include "web_client.h"
-#include "parser.h"
 #include "anime.h"
+
+#include "web_client.h"
+#include "parser/regex.h"
 
 struct AnimeProvider {
     char *name;

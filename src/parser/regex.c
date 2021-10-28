@@ -1,16 +1,16 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "common.h"
-#include "parser.h"
+#include "../common.h"
+#include "regex.h"
 
-char *parser_find(char *buffer, char *pattern)
+char *regex_find(char *buffer, char *pattern)
 {
     regex_t regex;
     regmatch_t pmatch[2];
     unsigned int length;
     struct SubstrPos substr_pos;
-    static char result[MAX_PARSER_MATCH_SIZE] = { 0 };
+    static char result[MAX_REGEX_MATCH_SIZE] = { 0 };
 
     if (regcomp(&regex, pattern, REG_NEWLINE | REG_EXTENDED))
         die("regcomp: Cannot compile regex");
@@ -30,12 +30,12 @@ char *parser_find(char *buffer, char *pattern)
     return result;
 }
 
-struct ParserResults *parser_findall(char *buffer, char *pattern)
+struct RegexResults *regex_findall(char *buffer, char *pattern)
 {
     regex_t regex;
     regoff_t offset = 0;
     regmatch_t pmatch[2];
-    static struct ParserResults results = { 0 };
+    static struct RegexResults results = { 0 };
 
     if (regcomp(&regex, pattern, REG_NEWLINE | REG_EXTENDED))
         die("regcomp: Cannot compile regex");
@@ -44,7 +44,7 @@ struct ParserResults *parser_findall(char *buffer, char *pattern)
     struct SubstrPos substr_pos = { 0 };
     unsigned int length;
 
-    for (i = 0; i < MAX_PARSER_MATCHES; i++) {
+    for (i = 0; i < MAX_REGEX_MATCHES; i++) {
         if (regexec(&regex, buffer + offset, ARRAY_SIZE(pmatch), pmatch, 0))
             break;
 
