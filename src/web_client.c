@@ -4,6 +4,17 @@
 #include <string.h>
 #include <stdint.h>
 
+struct WebPage {
+    char *buffer;
+    size_t size;
+};
+
+struct WebClient {
+    CURL *handle;
+    char url[URL_BUF_SIZE];
+    struct WebPage webpage;
+} *self;
+
 // ----------------------------------------------------------------------------
 // Private Functions
 // ----------------------------------------------------------------------------
@@ -42,9 +53,9 @@ static char *encode_payload(char *key, char *value)
 // ----------------------------------------------------------------------------
 // Main Functions
 // ----------------------------------------------------------------------------
-struct WebClient *web_client_init()
+void web_client_init()
 {
-    struct WebClient *self = xmalloc(sizeof(struct WebClient));
+    self = xmalloc(sizeof(struct WebClient));
 
     curl_global_init(CURL_GLOBAL_ALL);
     self->handle = curl_easy_init();
@@ -54,11 +65,9 @@ struct WebClient *web_client_init()
     self->webpage.buffer = xmalloc(1);
     curl_easy_setopt(self->handle, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(self->handle, CURLOPT_WRITEDATA, &self->webpage);
-
-    return self;
 }
 
-void web_client_cleanup(struct WebClient *self)
+void web_client_cleanup()
 {
     /* Cleanup CURL stuff */
     curl_easy_cleanup(self->handle);
@@ -71,7 +80,7 @@ void web_client_cleanup(struct WebClient *self)
     free(self);
 }
 
-void web_client_seturl(struct WebClient *self, char *url, char *referer)
+void web_client_seturl(char *url, char *referer)
 {
     unsigned int length = URL_BUF_SIZE - 1;
 
@@ -82,7 +91,7 @@ void web_client_seturl(struct WebClient *self, char *url, char *referer)
     curl_easy_setopt(self->handle, CURLOPT_REFERER, referer);
 }
 
-void web_client_setpayload(struct WebClient *self, char *key, char *value)
+void web_client_setpayload(char *key, char *value)
 {
     char sep = '?';
     char *encoded_payload = encode_payload(key, value);
@@ -100,11 +109,13 @@ void web_client_setpayload(struct WebClient *self, char *key, char *value)
     free(encoded_payload);
 }
 
-void web_client_perform(struct WebClient *self)
+char *web_client_perform()
 {
     self->webpage.size = 0;
     CURLcode err = curl_easy_perform(self->handle);
     if (err != CURLE_OK) {
         die("libcurl: (%d) %s", err, curl_easy_strerror(err));
     }
+
+    return self->webpage.buffer;
 }

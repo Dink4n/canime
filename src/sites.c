@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
-#include <assert.h>
 
 #include "sites.h"
 #include "common.h"
@@ -14,13 +12,12 @@
 
 #define INT2STR_SIZE 12
 
-extern struct WebClient *web_client;
-extern struct WebPage *web_page;
+static char *web_page;
 
 // -----------------------------------------------------------------------------
 // Private Functions
 // -----------------------------------------------------------------------------
-static char *_int2str(int number)
+static char *int2str(int number)
 {
     static char result[INT2STR_SIZE];
     snprintf(result, sizeof(result), "%d", number);
@@ -28,9 +25,10 @@ static char *_int2str(int number)
     return result;
 }
 
-static char *_get_lastline(char *str, unsigned int length)
+static char *get_lastline(char *str)
 {
     bool line_found = false;
+    size_t length = strlen(str);
 
     // Reverse string
     for (char *ptr = str + length - 1; ptr > str; ptr--) {
@@ -51,17 +49,15 @@ static char *_get_lastline(char *str, unsigned int length)
 // -----------------------------------------------------------------------------
 struct SearchResults *gogoanime_search(char *query)
 {
-    assert(query != NULL);
-
     struct RegexResults *regex_results;
     static struct SearchResults results;
 
-    web_client_seturl(web_client, "https://gogoanime.pe/search.html", NULL);
-    web_client_setpayload(web_client, "keyword", query);
+    web_client_seturl("https://gogoanime.pe/search.html", NULL);
+    web_client_setpayload("keyword", query);
 
-    web_client_perform(web_client);
+    web_page = web_client_perform();
 
-    regex_results = regex_findall(web_page->buffer,
+    regex_results = regex_findall(web_page,
                    "<p class=\"name\"><a href=\"/category/([^\"]*)\".*");
 
     results.total = regex_results->count;
@@ -75,18 +71,16 @@ struct SearchResults *gogoanime_search(char *query)
 
 struct AnimeInfo *gogoanime_get_metadata(char *anime_id)
 {
-    assert(anime_id != NULL);
-
-    struct AnimeInfo *metadata = malloc(sizeof(struct AnimeInfo));
-    char *last_episode_str;
     int last_episode_num;
+    char *last_episode_str;
+    struct AnimeInfo *metadata = malloc(sizeof(struct AnimeInfo));
 
     char *url = JOIN_STR("https://gogoanime.pe/category/", anime_id, NULL);
 
-    web_client_seturl(web_client, url, NULL);
-    web_client_perform(web_client);
+    web_client_seturl(url, NULL);
+    web_page = web_client_perform();
 
-    last_episode_str = regex_find(web_page->buffer,
+    last_episode_str = regex_find(web_page,
             ".*<a href=\"#\" class=\"active\" ep_start = '0' ep_end = '([^']+)'>.*");
 
     last_episode_num = strtol(last_episode_str, NULL, 10);
@@ -100,29 +94,28 @@ struct AnimeInfo *gogoanime_get_metadata(char *anime_id)
 
 void gogoanime_get_sources(struct AnimeInfo *anime)
 {
-    assert(anime != NULL);
-
     char *video_url, *highq_video, *video_url_end, *embedded_video_url;
     unsigned int highq_video_len;
 
-    char *url = JOIN_STR("https://gogoanime.pe/", anime->title, "-episode-", _int2str(anime->current_episode));
+    char *url = JOIN_STR("https://gogoanime.pe/", anime->title, "-episode-", int2str(anime->current_episode));
 
-    web_client_seturl(web_client, url, NULL);
-    web_client_perform(web_client);
+    web_client_seturl(url, NULL);
+    web_page = web_client_perform();
 
-    embedded_video_url = regex_find(web_page->buffer,
-        "^[[:space:]]*<a href=\"#\" rel=\"100\" data-video=\"([^\"]*)\" >.*");
+    embedded_video_url = regex_find(web_page,
+            "^[[:space:]]*<a href=\"#\" rel=\"100\" data-video=\"([^\"]*)\" >.*");
 
-    embedded_video_url = JOIN_STR("https:", embedded_video_url);
+    /* The resulting URL doesn't have `https:` part */
+    embedded_video_url =  JOIN_STR("https:", embedded_video_url);
 
-    web_client_seturl(web_client, embedded_video_url, NULL);
-    web_client_perform(web_client);
-    video_url = regex_find(web_page->buffer,
+    web_client_seturl(embedded_video_url, NULL);
+    web_page = web_client_perform();
+    video_url = regex_find(web_page,
                             "^[[:space:]]*sources:\\[\\{file: '([^']*)'.*");
 
-    web_client_seturl(web_client, video_url, embedded_video_url);
-    web_client_perform(web_client);
-    highq_video = _get_lastline(web_page->buffer, web_page->size);
+    web_client_seturl(video_url, embedded_video_url);
+    web_page = web_client_perform();
+    highq_video = get_lastline(web_page);
 
     // Copy referer and url to the result
     strncpy(anime->episode.referer, embedded_video_url, sizeof(anime->episode.referer) - 1);
@@ -146,21 +139,17 @@ void gogoanime_get_sources(struct AnimeInfo *anime)
 // -----------------------------------------------------------------------------
 struct SearchResults *animepahe_search(char *query)
 {
-    assert(query != NULL);
-
     static struct SearchResults results;
 
-    web_client_seturl(web_client, "https://animepahe.com/api?l=8&m=search", NULL);
-    web_client_setpayload(web_client, "q", query);
-    web_client_perform(web_client);
+    web_client_seturl("https://animepahe.com/api?l=8&m=search", NULL);
+    web_client_setpayload("q", query);
+    web_page = web_client_perform();
 
     return &results;
 }
 
 struct AnimeInfo *animepahe_get_metadata(char *anime_id)
 {
-    assert(anime_id != NULL);
-
     struct AnimeInfo *metadata = malloc(sizeof(struct AnimeInfo));
 
     return metadata;

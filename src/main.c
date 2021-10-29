@@ -9,12 +9,6 @@
 #define DEFAULT_PROVIDER "gogoanime"
 
 // -----------------------------------------------------------------------------
-// Global Variables
-// -----------------------------------------------------------------------------
-struct WebClient *web_client;
-struct WebPage *web_page;
-
-// -----------------------------------------------------------------------------
 // Local Variables
 // -----------------------------------------------------------------------------
 static char *provider = DEFAULT_PROVIDER;
@@ -43,8 +37,7 @@ void init()
         die("Invalid Provider: %s", provider);
 
     // Initialize the web_client
-    web_client = web_client_init();
-    web_page = &web_client->webpage;
+    web_client_init();
 }
 
 void get_initial_input()
@@ -96,7 +89,7 @@ void run()
 
     // Cleanup
     free(anime);
-    web_client_cleanup(web_client);
+    web_client_cleanup();
 }
 
 void open_episode()
