@@ -1,34 +1,9 @@
 #include <stdio.h>
+#include <regex.h> /* This is POSIX regex.h */
 #include <string.h>
 
+#include "regex.h" /* This is the wrapper */
 #include "../common.h"
-#include "regex.h"
-
-char *regex_find(char *buffer, char *pattern)
-{
-    regex_t regex;
-    regmatch_t pmatch[2];
-    unsigned int length;
-    struct SubstrPos substr_pos;
-    static char result[MAX_REGEX_MATCH_SIZE] = { 0 };
-
-    if (regcomp(&regex, pattern, REG_NEWLINE | REG_EXTENDED))
-        die("regcomp: Cannot compile regex");
-
-    substr_pos.start = 0;
-    substr_pos.end = 0;
-    if (!regexec(&regex, buffer, ARRAY_SIZE(pmatch), pmatch, 0)) {
-        substr_pos.start = pmatch[1].rm_so;
-        substr_pos.end = pmatch[1].rm_eo;
-    }
-
-    length = substr_pos.end - substr_pos.start;
-    strncpy(result, buffer + substr_pos.start, length);
-    result[length] = '\0';
-
-    regfree(&regex);
-    return result;
-}
 
 struct RegexResults *regex_findall(char *buffer, char *pattern)
 {
@@ -41,18 +16,17 @@ struct RegexResults *regex_findall(char *buffer, char *pattern)
         die("regcomp: Cannot compile regex");
 
     int i;
-    struct SubstrPos substr_pos = { 0 };
     unsigned int length;
-
+    regmatch_t substr_pos = { 0 };
     for (i = 0; i < MAX_REGEX_MATCHES; i++) {
         if (regexec(&regex, buffer + offset, ARRAY_SIZE(pmatch), pmatch, 0))
             break;
 
-        substr_pos.start = pmatch[1].rm_so + offset;
-        substr_pos.end = pmatch[1].rm_eo + offset;
-        length = substr_pos.end - substr_pos.start;
+        substr_pos.rm_so = pmatch[1].rm_so + offset;
+        substr_pos.rm_eo = pmatch[1].rm_eo + offset;
+        length = substr_pos.rm_eo - substr_pos.rm_so;
 
-        strncpy(results.matches[i], buffer + substr_pos.start, length);
+        strncpy(results.matches[i], buffer + substr_pos.rm_so, length);
         results.matches[i][length] = '\0';
 
         offset += pmatch[1].rm_eo;
@@ -62,4 +36,10 @@ struct RegexResults *regex_findall(char *buffer, char *pattern)
 
     regfree(&regex);
     return &results;
+}
+
+char *regex_find(char *buffer, char *pattern)
+{
+    /* Return the first match */
+    return regex_findall(buffer, pattern)->matches[0];
 }

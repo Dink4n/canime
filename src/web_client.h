@@ -1,9 +1,6 @@
 #ifndef CANIME_WEB_CLIENT_H
 #define CANIME_WEB_CLIENT_H
 
-#include <stdlib.h>
-#include <curl/curl.h>
-
 #define URL_BUF_SIZE 256
 
 // Initialize WebClient

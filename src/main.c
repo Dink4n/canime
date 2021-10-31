@@ -1,5 +1,8 @@
+#include <stdio.h>
 #include <unistd.h>
 
+#include "anime.h"
+#include "input.h"
 #include "common.h"
 #include "colors.h"
 #include "web_client.h"
@@ -52,10 +55,9 @@ void get_initial_input()
 
     // Search the provider using the given query
     search_results = anime_provider->search(query);
-    print_search_results(search_results);
 
     // Get anime selection from user
-    anime_sel_id = ask_anime_sel();
+    anime_sel_id = ask_anime_sel(search_results);
 
     anime = anime_provider->get_metadata(search_results->results[anime_sel_id]);
 
@@ -76,11 +78,12 @@ void run()
         printf("%sCurrent playing %s episode %s%d/%d%s\n", C_BGRN, anime->title,
                C_BCYN, anime->current_episode, anime->total_episodes, C_RESET);
 
-        print_options();
-
-        printf("%sEnter Choice%s: ", C_BBLU, C_RESET);
-        scanf(" %c", &choice);
-        if (handle_option_choice(choice, anime)) {
+/*         print_options(); */
+/*  */
+/*         printf("%sEnter Choice%s: ", C_BBLU, C_RESET); */
+/*         scanf(" %c", &choice); */
+        /* if (handle_option_choice(choice, anime)) { */
+        if (ask_option_choice(anime)) {
             break;
         }
 

@@ -1,7 +1,6 @@
 #ifndef CANIME_COMMON_H
 #define CANIME_COMMON_H
 
-#include <stdarg.h>
 #include <stdlib.h>
 
 #define ARRAY_SIZE(arr) (sizeof((arr)) / sizeof((arr)[0]))

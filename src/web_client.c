@@ -1,15 +1,19 @@
+#include <string.h>
+#include <stdint.h>
+#include <curl/curl.h>
+
 #include "web_client.h"
 #include "common.h"
 
-#include <string.h>
-#include <stdint.h>
-
+// ----------------------------------------------------------------------------
+// Structure Defintions
+// ----------------------------------------------------------------------------
 struct WebPage {
     char *buffer;
     size_t size;
 };
 
-struct WebClient {
+static struct WebClient {
     CURL *handle;
     char url[URL_BUF_SIZE];
     struct WebPage webpage;

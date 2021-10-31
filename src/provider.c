@@ -1,9 +1,8 @@
 #include <string.h>
-#include <stdint.h>
 
 #include "provider.h"
 #include "common.h"
-#include "sites.h"
+#include "sites/sites.h"
 
 struct AnimeProvider *get_anime_provider(char *name)
 {

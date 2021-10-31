@@ -1,32 +1,16 @@
 #ifndef CANIME_UTILS_H
 #define CANIME_UTILS_H
 
-#include <stdbool.h>
-#include <stdio.h>
-
-#include "parser/regex.h"
-#include "anime.h"
-
 #define MAX_TEXT_BUFFER_SIZE 256
 #define JOIN_STR(...) join_str((char *[]){ __VA_ARGS__, NULL })
 
-// Ask user for search query
-char *ask_search_query();
+struct AnimeInfo;
 
-// Ask user for anime selection
-int ask_anime_sel();
+// Convert int to string
+char *int2str(int number);
 
-// Ask user for episode selection
-int ask_episode_sel(int total_episodes);
-
-// Ask user for option choice
-bool handle_option_choice(char choice, struct AnimeInfo *anime);
-
-// Print anime search results
-void print_search_results(struct SearchResults *search_results);
-
-// Print options
-void print_options();
+// Get pointer to last line of string
+char *get_lastline(char *str);
 
 // Join strings. Be sure to free() it
 char *join_str(char **str_list);

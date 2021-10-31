@@ -1,112 +1,40 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdbool.h>
 #include <errno.h>
 
 #include "utils.h"
 #include "common.h"
-#include "colors.h"
-#include "provider.h"
+#include "anime.h"
 
-extern struct WebClient *web_client;
-extern struct WebPage *web_page;
+#define INT2STR_SIZE 12
 
-char *ask_search_query()
+char *int2str(int number)
 {
-    static char anime_name[MAX_ANIME_NAME_LEN];
-    fputs("Enter Anime: ", stdout);
-    fgets(anime_name, sizeof(anime_name), stdin);
+    static char result[INT2STR_SIZE];
+    snprintf(result, sizeof(result), "%d", number);
 
-    return anime_name;
+    return result;
 }
 
-int ask_anime_sel()
+char *get_lastline(char *str)
 {
-    int sel;
-    printf("%sEnter Selection:%s ", C_BBLU, C_RESET);
-    scanf("%2d", &sel);
-    fflush(stdin);
+    bool line_found = false;
+    size_t length = strlen(str);
 
-    if (sel >= MAX_ANIME_SEARCH_RESULTS || sel <= 0)
-        die("Invalid Selection");
+    // Reverse string
+    for (char *ptr = str + length - 1; ptr > str; ptr--) {
+        if (*ptr != '\n') {
+            line_found = true;
+            continue;
+        }
 
-    return sel - 1;
-}
-
-int ask_episode_sel(int total_episodes)
-{
-    int sel;
-    printf("%sChoose Episode %s[1-%d]%s: ", C_BBLU, C_BCYN, total_episodes,
-           C_RESET);
-    scanf("%2d", &sel);
-    getchar();
-
-    if (sel <= 0 || sel >= total_episodes)
-        die("Invalid Episode");
-
-    return sel;
-}
-
-bool handle_option_choice(char choice, struct AnimeInfo *anime)
-{
-    switch (choice) {
-    case 'n':
-        anime->current_episode++;
-        break;
-
-    case 'p':
-        anime->current_episode--;
-        break;
-
-    case 'r':
-        // Do nothing just play it back again
-        break;
-
-    case 's':
-        anime->current_episode = ask_episode_sel(anime->total_episodes);
-        break;
-
-    case 'q':
-        return true;
-
-    default:
-        printf("%sInvalid choice%s\n", C_BRED, C_RESET);
-        return true;
-    };
-
-     return false;
-}
-
-void print_search_results(struct SearchResults *search_results)
-{
-    char *color;
-    char *fmt = "%s[%s%d%s]%s %s%s%s\n";
-
-    if (search_results->total > MAX_ANIME_SEARCH_RESULTS)
-        search_results->total = MAX_ANIME_SEARCH_RESULTS;
-
-    // print with colors
-    for (int i = search_results->total - 1; i >= 0; i--) {
-        color = (i % 2 == 0) ? C_BYEL : C_RESET;
-        printf(fmt, C_BBLU, C_BCYN, i + 1, C_BBLU, C_RESET, color,
-               search_results->results[i], C_RESET);
+        if (line_found)
+            return ptr + 1;
     }
-}
 
-void print_options()
-{
-    char *fmt = "%s[%s%c%s]%s %s%s%s\n";
-
-    printf(fmt, C_BBLU, C_BCYN, 'n', C_BBLU, C_RESET,
-           C_BYEL, "next episode", C_RESET);
-    printf(fmt, C_BBLU, C_BCYN, 'p', C_BBLU, C_RESET,
-           C_BMAG, "previous episode", C_RESET);
-    printf(fmt, C_BBLU, C_BCYN, 's', C_BBLU, C_RESET,
-           C_BYEL, "select episode", C_RESET);
-    printf(fmt, C_BBLU, C_BCYN, 'r', C_BBLU, C_RESET,
-           C_BMAG, "replay episode", C_RESET);
-    printf(fmt, C_BBLU, C_BCYN, 'q', C_BBLU, C_RESET,
-           C_BRED, "quit", C_RESET);
+    return NULL;
 }
 
 void play_episode(struct AnimeInfo *anime)

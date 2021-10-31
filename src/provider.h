@@ -3,9 +3,6 @@
 
 #include "anime.h"
 
-#include "web_client.h"
-#include "parser/regex.h"
-
 struct AnimeProvider {
     char *name;
     struct SearchResults *(*search)(char *query);
