@@ -17,7 +17,20 @@ void die(const char *fmt, ...)
     fputs(C_RESET, stderr);
 
     va_end(args);
-    exit(1);
+    exit(EXIT_FAILURE);
+}
+
+void warn(const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    fputs(C_BRED, stderr);
+    vfprintf(stderr, fmt, args);
+    fputc('\n', stderr);
+    fputs(C_RESET, stderr);
+
+    va_end(args);
 }
 
 void *xmalloc(size_t size)

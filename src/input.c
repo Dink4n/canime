@@ -56,18 +56,26 @@ static bool handle_option_choice(char choice, struct AnimeInfo *anime)
         break;
 
     case 's':
+        // ask_episode_sel() checks if episode is out of range
         anime->current_episode = ask_episode_sel(anime->total_episodes);
-        break;
+        return false;
 
     case 'q':
         return true;
 
     default:
-        printf("%sInvalid choice%s\n", C_BRED, C_RESET);
+        warn("Invalid Choice");
         return true;
     };
 
-     return false;
+    if (anime->current_episode < 1 ||
+        anime->current_episode > anime->total_episodes) {
+        // canime shouldn't die here, we have to write history!
+        warn("Episode out of range");
+        return true;
+    }
+
+    return false;
 }
 
 // -----------------------------------------------------------------------------
@@ -91,7 +99,7 @@ int ask_anime_sel(struct SearchResults *search_results)
     scanf("%2d", &sel);
     fflush(stdin);
 
-    if (sel >= MAX_ANIME_SEARCH_RESULTS || sel <= 0)
+    if (sel < 1 || sel > MAX_ANIME_SEARCH_RESULTS)
         die("Invalid Selection");
 
     return sel - 1;
@@ -105,7 +113,7 @@ int ask_episode_sel(int total_episodes)
     scanf("%2d", &sel);
     fflush(stdin);
 
-    if (sel <= 0 || sel >= total_episodes)
+    if (sel < 1 || sel > total_episodes)
         die("Invalid Episode");
 
     return sel;

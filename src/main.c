@@ -46,7 +46,7 @@ void init()
 void get_initial_input()
 {
     int anime_sel_id;
-    int episode_sel;
+    int episode_sel = 1;
     struct SearchResults *search_results = NULL;
 
     // If user didn't give query as argument. Then, ask for query
@@ -58,11 +58,9 @@ void get_initial_input()
 
     // Get anime selection from user
     anime_sel_id = ask_anime_sel(search_results);
-
     anime = anime_provider->get_metadata(search_results->results[anime_sel_id]);
 
     // Get episode selection from user
-    episode_sel = 1;
     if (anime->total_episodes > 1)
         episode_sel = ask_episode_sel(anime->total_episodes);
 
@@ -78,15 +76,7 @@ void run()
         printf("%sCurrent playing %s episode %s%d/%d%s\n", C_BGRN, anime->title,
                C_BCYN, anime->current_episode, anime->total_episodes, C_RESET);
 
-/*         print_options(); */
-/*  */
-/*         printf("%sEnter Choice%s: ", C_BBLU, C_RESET); */
-/*         scanf(" %c", &choice); */
-        /* if (handle_option_choice(choice, anime)) { */
-        if (ask_option_choice(anime)) {
-            break;
-        }
-
+        if (ask_option_choice(anime)) break;
         open_episode();
     }
 
@@ -155,7 +145,6 @@ main_code:
     init();
     get_initial_input();
     run();
-
 
     return 0;
 }

@@ -16,6 +16,7 @@ int ask_anime_sel(struct SearchResults *search_results);
 int ask_episode_sel(int total_episodes);
 
 // Ask user for option selection
+// @returns true if program should quit
 bool ask_option_choice(struct AnimeInfo *anime);
 
 #endif /* CANIME_INPUT_H */
