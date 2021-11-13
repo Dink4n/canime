@@ -5,6 +5,8 @@
 #include "gogoanime.h"
 #include "../parser/regex.h"
 
+#define BASE_URL "https://gogoanime.cm/"
+
 static char *web_page;
 
 // -----------------------------------------------------------------------------
@@ -15,7 +17,7 @@ struct SearchResults *gogoanime_search(char *query)
     struct RegexResults *regex_results;
     static struct SearchResults results;
 
-    web_client_seturl("https://gogoanime.pe/search.html", NULL);
+    web_client_seturl(BASE_URL "/search.html", NULL);
     web_client_setpayload("keyword", query);
 
     web_page = web_client_perform();
@@ -38,7 +40,7 @@ struct AnimeInfo *gogoanime_get_metadata(char *animeid)
     char *last_episode_str;
     struct AnimeInfo *metadata = malloc(sizeof(struct AnimeInfo));
 
-    char *url = JOIN_STR("https://gogoanime.pe/category/", animeid, NULL);
+    char *url = JOIN_STR(BASE_URL "/category/", animeid, NULL);
 
     web_client_seturl(url, NULL);
     web_page = web_client_perform();
@@ -60,7 +62,7 @@ void gogoanime_get_sources(struct AnimeInfo *anime)
     char *video_url, *highq_video, *video_url_end, *embedded_video_url;
     unsigned int highq_video_len;
 
-    char *url = JOIN_STR("https://gogoanime.pe/", anime->title, "-episode-", int2str(anime->current_episode));
+    char *url = JOIN_STR(BASE_URL, anime->title, "-episode-", int2str(anime->current_episode));
 
     web_client_seturl(url, NULL);
     web_page = web_client_perform();
