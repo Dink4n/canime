@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
 
 #include "input.h"
 #include "anime.h"
@@ -78,6 +80,30 @@ static bool handle_option_choice(char choice, struct AnimeInfo *anime)
     return false;
 }
 
+static void flushstdin()
+{
+    char c;
+    while ((c = getchar()) != '\n' && c != EOF);
+}
+
+static void safe_scanf(const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    int result = vfscanf(stdin, fmt, args);
+    if (result == 0) {
+        die("Invalid input");
+        flushstdin();
+    } else if (result == EOF) {
+        die("EOF detected; Bailing out!");
+    }
+
+    flushstdin();
+
+    va_end(args);
+}
+
 // -----------------------------------------------------------------------------
 // Non-Private Functions
 // -----------------------------------------------------------------------------
@@ -96,8 +122,7 @@ int ask_anime_sel(struct SearchResults *search_results)
 
     print_search_results(search_results);
     printf("%sEnter Selection:%s ", C_BBLU, C_RESET);
-    scanf("%2d", &sel);
-    fflush(stdin);
+    safe_scanf("%d", &sel);
 
     if (sel < 1 || sel > MAX_ANIME_SEARCH_RESULTS)
         die("Invalid Selection");
@@ -110,8 +135,7 @@ int ask_episode_sel(int total_episodes)
     int sel;
     printf("%sChoose Episode %s[1-%d]%s: ", C_BBLU, C_BCYN, total_episodes,
            C_RESET);
-    scanf("%2d", &sel);
-    fflush(stdin);
+    safe_scanf("%d", &sel);
 
     if (sel < 1 || sel > total_episodes)
         die("Invalid Episode");
@@ -125,7 +149,7 @@ bool ask_option_choice(struct AnimeInfo *anime)
 
     print_options();
     printf("%sEnter Choice%s: ", C_BBLU, C_RESET);
-    scanf(" %c", &choice);
+    safe_scanf(" %c", &choice);
 
     return handle_option_choice(choice, anime);
 }
