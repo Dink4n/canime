@@ -46,7 +46,7 @@ struct AnimeInfo *gogoanime_get_metadata(char *animeid)
     web_page = web_client_perform();
 
     last_episode_str = regex_find(web_page,
-            ".*<a href=\"#\" class=\"active\" ep_start = '0' ep_end = '([^']+)'>.*");
+            ".*<a href=\"#\" class=\"active\" ep_start = '[0-9]+' ep_end = '([^']+)'>.*");
 
     last_episode_num = strtol(last_episode_str, NULL, 10);
 

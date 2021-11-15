@@ -24,6 +24,7 @@ static struct AnimeInfo *anime = NULL;
 // Function Declarations
 // -----------------------------------------------------------------------------
 void init();
+void cleanup();
 void get_initial_input();
 void run();
 void open_episode();
@@ -43,6 +44,11 @@ void init()
     web_client_init();
 }
 
+void cleanup()
+{
+    web_client_cleanup();
+}
+
 void get_initial_input()
 {
     int anime_sel_id;
@@ -55,6 +61,11 @@ void get_initial_input()
 
     // Search the provider using the given query
     search_results = anime_provider->search(query);
+    if (search_results->total < 1) {
+        // Cleanup all the stuff
+        cleanup();
+        die("Couldn't find %s. Use a better search term.", query);
+    }
 
     // Get anime selection from user
     anime_sel_id = ask_anime_sel(search_results);
@@ -80,9 +91,7 @@ void run()
         open_episode();
     }
 
-    // Cleanup
     free(anime);
-    web_client_cleanup();
 }
 
 void open_episode()
@@ -145,6 +154,7 @@ main_code:
     init();
     get_initial_input();
     run();
+    cleanup();
 
     return 0;
 }
